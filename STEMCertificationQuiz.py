@@ -61,10 +61,7 @@ def save_questions_sheet(df):
 CERT_DIR = "certificates"
 
 def generate_certificate(username, score):
-    from fpdf import FPDF
-    import os
-    from datetime import datetime
-
+    
     pdf = FPDF()
     pdf.add_page()
 
