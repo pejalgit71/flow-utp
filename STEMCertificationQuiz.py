@@ -1,5 +1,11 @@
 # === Google Sheets Integration ===
-
+import streamlit as st
+import pandas as pd
+from fpdf import FPDF
+import os
+import io
+import zipfile
+from datetime import datetime
 import gspread
 import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
@@ -49,13 +55,6 @@ def save_questions_sheet(df):
 
 # === Original App Code (modified) ===
 # stem_quiz_app/app.py
-import streamlit as st
-import pandas as pd
-from fpdf import FPDF
-import os
-import io
-import zipfile
-from datetime import datetime
 
 # --- CSV FILE PATHS ---
 
