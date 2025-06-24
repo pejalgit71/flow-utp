@@ -173,7 +173,6 @@ def admin_question_gui():
 
     st.subheader("📊 Certified Users Report")
 
-    from sheets_utils import load_users_sheet
     df = load_users_sheet()
 
     certified_users = df[df["certified"] == 1]
