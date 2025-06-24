@@ -61,14 +61,18 @@ def save_questions_sheet(df):
 CERT_DIR = "certificates"
 
 def generate_certificate(username, score):
+    from fpdf import FPDF
+    import os
+    from datetime import datetime
+
     pdf = FPDF()
     pdf.add_page()
 
-    # Logos (optional)
-    if os.path.exists("MyFlowLab_logo.png"):
-        pdf.image("MyFlowLab_logo.png", x=20, y=10, w=40)
-    if os.path.exists("UTP_logo.png"):
-        pdf.image("UTP_logo.png", x=150, y=10, w=40)
+    # Add logos if available
+    if os.path.exists("MyFLowlab.png"):
+        pdf.image("MyFLowlab.png", x=20, y=10, w=40)
+    if os.path.exists("UTP.png"):
+        pdf.image("UTP.png", x=150, y=10, w=40)
 
     pdf.ln(50)
     pdf.set_font("Arial", 'B', 20)
@@ -83,9 +87,9 @@ def generate_certificate(username, score):
     pdf.cell(0, 10, "has successfully completed the", ln=True, align='C')
     pdf.cell(0, 10, "STEM Flowlab Certification Quiz", ln=True, align='C')
     pdf.cell(0, 10, f"with a score of {score}%", ln=True, align='C')
+
     pdf.ln(20)
     pdf.cell(0, 10, "Authorized by MyFlowLab and UTP", ln=True, align='C')
-    pdf.ln(10)
     pdf.cell(0, 10, f"Date: {datetime.now().strftime('%B %d, %Y')}", ln=True, align='C')
 
     os.makedirs("certificates", exist_ok=True)
@@ -171,6 +175,8 @@ def admin_question_gui():
     st.markdown("---")
 
     st.subheader("📊 Certified Users Report")
+
+    from sheets_utils import load_users_sheet
     df = load_users_sheet()
 
     certified_users = df[df["certified"] == 1]
