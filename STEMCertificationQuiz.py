@@ -146,31 +146,8 @@ def calculate_score(answers, questions):
 
 # --- ADMIN QUESTION MANAGER ---
 def admin_question_gui():
-    st.subheader("🛠️ Manage Quiz Questions and 📊 Certified Users Report")
+    st.subheader("🛠️ Manage Quiz Questions")
    
-    from sheets_utils import load_users_sheet
-    df = load_users_sheet()
-    
-    certified_users = df[df["certified"] == 1]
-    
-    if not certified_users.empty:
-        st.dataframe(certified_users[["username", "score"]])
-    
-        if st.button("🎓 Generate All Certificates (ZIP)"):
-            import zipfile
-            import io
-    
-            buffer = io.BytesIO()
-            with zipfile.ZipFile(buffer, "w") as zipf:
-                for _, row in certified_users.iterrows():
-                    cert_path = generate_certificate(row["username"], row["score"])
-                    zipf.write(cert_path, os.path.basename(cert_path))
-    
-            buffer.seek(0)
-            st.download_button("📥 Download All Certificates", data=buffer, file_name="certificates.zip", mime="application/zip")
-    else:
-        st.info("No certified users yet.")
-
     admin_pass = st.text_input("Enter Admin Password", type="password")
     if admin_pass != "fladmin":
         st.warning("Access restricted. Please enter the correct admin password.")
