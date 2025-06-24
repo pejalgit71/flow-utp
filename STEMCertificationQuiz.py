@@ -8,7 +8,13 @@ SHEET_NAME = "STEM Certification Data"
 
 def get_gsheet_client():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("myflowutp-dcbd0066a865.json", scope)
+    def get_gsheet_client():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope)
     return gspread.authorize(creds)
 
 def load_users_sheet():
