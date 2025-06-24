@@ -218,7 +218,7 @@ def main():
             else:
                 new_row = pd.DataFrame([[new_user, new_pass, 0, 0]], columns=["username", "password", "score", "certified"])
                 df = pd.concat([df, new_row], ignore_index=True)
-                save_users(df)
+                save_users_sheet(df)
                 st.success("Account created! Please login.")
 
     elif choice == "Login":
