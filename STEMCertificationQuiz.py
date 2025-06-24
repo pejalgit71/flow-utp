@@ -146,9 +146,8 @@ def calculate_score(answers, questions):
 
 # --- ADMIN QUESTION MANAGER ---
 def admin_question_gui():
-    st.subheader("🛠️ Manage Quiz Questions")
-    st.subheader("📊 Certified Users Report")
-
+    st.subheader("🛠️ Manage Quiz Questions and 📊 Certified Users Report")
+   
     from sheets_utils import load_users_sheet
     df = load_users_sheet()
     
