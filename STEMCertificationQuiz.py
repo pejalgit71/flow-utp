@@ -11,14 +11,6 @@ import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 
 SHEET_NAME = "STEM Certification Data"
-st.write("📌 Connected to Google successfully.")
-st.write("📝 Looking for sheet:", SHEET_NAME)
-
-gc = get_gsheet_client()
-spreadsheet = gc.open(SHEET_NAME)
-st.write("✅ Spreadsheet found:", spreadsheet.title)
-
-sheet = spreadsheet.worksheet("users")
 
 
 def get_gsheet_client():
