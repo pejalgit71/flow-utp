@@ -152,73 +152,74 @@ def admin_question_gui():
 # === Main App ===
 def main():
     st.set_page_config(page_title="UTP STEM Certification Quiz", layout="wide")
-    # st.image(["UTP.png","MyFLowlab.png"])
-    st.title("Universiti Teknologi PETRONAS STEM Exploration Assesment")
+    st.title("Universiti Teknologi PETRONAS STEM Exploration Assessment")
 
+    # Initialize session state
     if "username" not in st.session_state:
         st.session_state["username"] = ""
+
+    # Sidebar branding
     st.sidebar.image("MyFLowlab.png")
     st.sidebar.image("UTP.png")
-    
-    menu = ["Login", "Sign Up"]
-    choice = st.sidebar.selectbox("Menu", menu)
 
-    # Sign Up
-    if choice == "Sign Up":
-        st.subheader("Create Account")
-        
-        full_name = st.text_input("Full Name (as in book)")
-        nric = st.text_input("NRIC (e.g. 901212-10-1234)")
-        email = st.text_input("Email used when activating FlowLogic 6")
-        access_code = st.text_input("Access Code from book")
-        new_user = st.text_input("Create Username")
-        new_pass = st.text_input("Create Password", type="password")
-    
-        if st.button("Sign Up"):
-            # Load Google Sheets
-            df_users = load_users_sheet()
-            df_candidates = load_candidate_list()
-    
-            match = df_candidates[
-                (df_candidates["ACCESSCODE"] == access_code) &
-                (df_candidates["NRIC"].astype(str).str.strip() == nric.strip()) &
-                (df_candidates["EMAIL"].str.lower().str.strip() == email.lower().strip()) &
-                (df_candidates["STATUS"] == 1)
-            ]
-    
-            if match.empty:
-                st.error("Access Code is invalid or not activated, or NRIC/Email doesn't match.")
-            elif new_user in df_users["username"].values:
-                st.warning("Username already exists. Please choose another.")
-            else:
-                new_row = pd.DataFrame([{
-                    "username": new_user,
-                    "password": new_pass,
-                    "score": 0,
-                    "certified": 0,
-                    "attempts": 0,
-                    "access_code": access_code,
-                    "full_name": full_name,
-                    "nric": nric,
-                    "email": email
-                }])
-                df_users = pd.concat([df_users, new_row], ignore_index=True)
-                save_users_sheet(df_users)
-                st.success("✅ Account created successfully! You can now log in.")
+    # Show Login/Sign Up only if NOT logged in
+    if not st.session_state["username"]:
+        menu = ["Login", "Sign Up"]
+        choice = st.sidebar.selectbox("Menu", menu)
 
+        # Sign Up
+        if choice == "Sign Up":
+            st.subheader("Create Account")
+            full_name = st.text_input("Full Name (as in book)")
+            nric = st.text_input("NRIC (e.g. 901212-10-1234)")
+            email = st.text_input("Email used when activating FlowLogic 6")
+            access_code = st.text_input("Access Code from book")
+            new_user = st.text_input("Create Username")
+            new_pass = st.text_input("Create Password", type="password")
 
-    # Login
-    elif choice == "Login":
-        st.subheader("Login")
-        user = st.text_input("Username")
-        pw = st.text_input("Password", type="password")
-        if st.button("Login"):
-            df = load_users_sheet()
-            if user in df["username"].values and pw == df[df["username"] == user]["password"].values[0]:
-                st.session_state["username"] = user
-                st.rerun()
-            else:
-                st.error("Invalid credentials.")
+            if st.button("Sign Up"):
+                df_users = load_users_sheet()
+                df_candidates = load_candidate_list()
+
+                match = df_candidates[
+                    (df_candidates["ACCESSCODE"] == access_code) &
+                    (df_candidates["NRIC"].astype(str).str.strip() == nric.strip()) &
+                    (df_candidates["EMAIL"].str.lower().str.strip() == email.lower().strip()) &
+                    (df_candidates["STATUS"] == 1)
+                ]
+
+                if match.empty:
+                    st.error("Access Code is invalid or not activated, or NRIC/Email doesn't match.")
+                elif new_user in df_users["username"].values:
+                    st.warning("Username already exists. Please choose another.")
+                else:
+                    new_row = pd.DataFrame([{
+                        "username": new_user,
+                        "password": new_pass,
+                        "score": 0,
+                        "certified": 0,
+                        "attempts": 0,
+                        "access_code": access_code,
+                        "full_name": full_name,
+                        "nric": nric,
+                        "email": email
+                    }])
+                    df_users = pd.concat([df_users, new_row], ignore_index=True)
+                    save_users_sheet(df_users)
+                    st.success("✅ Account created successfully! You can now log in.")
+
+        # Login
+        elif choice == "Login":
+            st.subheader("Login")
+            user = st.text_input("Username")
+            pw = st.text_input("Password", type="password")
+            if st.button("Login"):
+                df = load_users_sheet()
+                if user in df["username"].values and pw == df[df["username"] == user]["password"].values[0]:
+                    st.session_state["username"] = user
+                    st.rerun()
+                else:
+                    st.error("Invalid credentials.")
 
     # After login
     if st.session_state["username"]:
@@ -227,7 +228,7 @@ def main():
             st.session_state["username"] = ""
             st.rerun()
 
-        # Admin
+        # Admin panel
         if st.session_state["username"] == "admin":
             st.subheader("Admin Panel")
             file = st.file_uploader("Upload new candidate list (.xlsx)", type="xlsx")
@@ -235,10 +236,10 @@ def main():
                 new_df = pd.read_excel(file, sheet_name="Certification candidate list")
                 update_candidate_list(new_df)
                 st.success("Candidate list updated.")
-            
-            admin_question_gui()  # ⬅️ Add this line
 
-        # Regular user
+            admin_question_gui()  # Show admin controls
+
+        # Regular user quiz
         else:
             questions = load_questions_sheet()
             if "current_q" not in st.session_state:
@@ -293,5 +294,6 @@ def main():
                                 st.download_button("🎓 Download Certificate", f.read(), file_name=f"{st.session_state['username']}_certificate.pdf")
                         else:
                             st.error("Did not pass. Try again later.")
+
 if __name__ == "__main__":
     main()
