@@ -158,6 +158,8 @@ def main():
         st.session_state["username"] = ""
     st.sidebar.image("MyFLowlab.png")
     st.sidebar.image("UTP.png")
+    st.image("MyFLowlab.png")
+    st.image("UTP.png")
     menu = ["Login", "Sign Up"]
     choice = st.sidebar.selectbox("Menu", menu)
 
