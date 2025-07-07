@@ -162,15 +162,6 @@ def main():
     choice = st.sidebar.selectbox("Menu", menu)
 
     # Sign Up
-    if choice == "Sign Up":
-    st.subheader("Create Account")
-    
-    full_name = st.text_input("Full Name (as in book)")
-    nric = st.text_input("NRIC (e.g. 901212-10-1234)")
-    email = st.text_input("Email used when activating FlowLogic 6")
-    access_code = st.text_input("Access Code from book")
-    new_user = st.text_input("Create Username")
-    new_pass = st.text_input("Create Password", type="password")
 
     if st.button("Sign Up"):
         # Load Google Sheets
