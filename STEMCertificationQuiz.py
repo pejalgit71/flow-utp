@@ -152,14 +152,14 @@ def admin_question_gui():
 # === Main App ===
 def main():
     st.set_page_config(page_title="UTP STEM Certification Quiz", layout="wide")
+    st.image("UTP.png","MyFLowlab.png")
     st.title("Universiti Teknologi PETRONAS STEM Exploration Assesment")
 
     if "username" not in st.session_state:
         st.session_state["username"] = ""
     st.sidebar.image("MyFLowlab.png")
     st.sidebar.image("UTP.png")
-    st.image("MyFLowlab.png")
-    st.image("UTP.png")
+    
     menu = ["Login", "Sign Up"]
     choice = st.sidebar.selectbox("Menu", menu)
 
