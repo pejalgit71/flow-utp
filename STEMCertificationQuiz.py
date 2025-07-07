@@ -95,6 +95,60 @@ def calculate_score(answers, questions):
             correct += 1
     return int((correct / len(questions)) * 100)
 
+def admin_question_gui():
+    st.subheader("🛠️ Manage Quiz Questions")
+
+    # Display all questions
+    df = load_questions_sheet()
+
+    st.markdown("### ➕ Add New Question")
+    with st.form("add_question_form"):
+        q = st.text_area("Question")
+        a = st.text_input("Option A")
+        b = st.text_input("Option B")
+        c = st.text_input("Option C")
+        d = st.text_input("Option D")
+        correct = st.selectbox("Correct Answer", ["a", "b", "c", "d"])
+        if st.form_submit_button("Add Question"):
+            if all([q, a, b, c, d]):
+                new_row = pd.DataFrame([{
+                    "question": q, "option_a": a, "option_b": b,
+                    "option_c": c, "option_d": d, "correct_answer": correct
+                }])
+                df = pd.concat([df, new_row], ignore_index=True)
+                save_questions_sheet(df)
+                st.success("Question added!")
+                st.rerun()
+
+    st.markdown("### ✏️ Edit Existing Questions")
+    if df.empty:
+        st.info("No questions yet.")
+    else:
+        for i, row in df.iterrows():
+            with st.expander(f"Q{i+1}: {row['question'][:60]}..."):
+                with st.form(f"edit_form_{i}"):
+                    q = st.text_area("Question", value=row["question"])
+                    a = st.text_input("Option A", value=row["option_a"])
+                    b = st.text_input("Option B", value=row["option_b"])
+                    c = st.text_input("Option C", value=row["option_c"])
+                    d = st.text_input("Option D", value=row["option_d"])
+                    correct = st.selectbox("Correct Answer", ["a", "b", "c", "d"],
+                                           index=["a", "b", "c", "d"].index(row["correct_answer"]))
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.form_submit_button("Update"):
+                            df.loc[i] = [q, a, b, c, d, correct]
+                            save_questions_sheet(df)
+                            st.success("Updated!")
+                            st.rerun()
+                    with col2:
+                        if st.form_submit_button("Delete"):
+                            df = df.drop(i).reset_index(drop=True)
+                            save_questions_sheet(df)
+                            st.success("Deleted!")
+                            st.rerun()
+
+
 # === Main App ===
 def main():
     st.set_page_config(page_title="STEM Certification Quiz", layout="wide")
@@ -158,6 +212,8 @@ def main():
                 new_df = pd.read_excel(file, sheet_name="Certification candidate list")
                 update_candidate_list(new_df)
                 st.success("Candidate list updated.")
+            
+            admin_question_gui()  # ⬅️ Add this line
 
         # Regular user
         else:
