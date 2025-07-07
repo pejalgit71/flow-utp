@@ -214,3 +214,5 @@ def main():
                                 st.download_button("🎓 Download Certificate", f.read(), file_name=f"{st.session_state['username']}_certificate.pdf")
                         else:
                             st.error("Did not pass. Try again later.")
+if __name__ == "__main__":
+    main()
