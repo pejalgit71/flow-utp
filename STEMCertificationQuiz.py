@@ -163,46 +163,46 @@ def main():
 
     # Sign Up
     if choice == "Sign Up":
-    st.subheader("Create Account")
+        st.subheader("Create Account")
+        
+        full_name = st.text_input("Full Name (as in book)")
+        nric = st.text_input("NRIC (e.g. 901212-10-1234)")
+        email = st.text_input("Email used when activating FlowLogic 6")
+        access_code = st.text_input("Access Code from book")
+        new_user = st.text_input("Create Username")
+        new_pass = st.text_input("Create Password", type="password")
     
-    full_name = st.text_input("Full Name (as in book)")
-    nric = st.text_input("NRIC (e.g. 901212-10-1234)")
-    email = st.text_input("Email used when activating FlowLogic 6")
-    access_code = st.text_input("Access Code from book")
-    new_user = st.text_input("Create Username")
-    new_pass = st.text_input("Create Password", type="password")
-
-    if st.button("Sign Up"):
-        # Load Google Sheets
-        df_users = load_users_sheet()
-        df_candidates = load_candidate_list()
-
-        match = df_candidates[
-            (df_candidates["ACCESSCODE"] == access_code) &
-            (df_candidates["NRIC"].astype(str).str.strip() == nric.strip()) &
-            (df_candidates["EMAIL"].str.lower().str.strip() == email.lower().strip()) &
-            (df_candidates["STATUS"] == 1)
-        ]
-
-        if match.empty:
-            st.error("Access Code is invalid or not activated, or NRIC/Email doesn't match.")
-        elif new_user in df_users["username"].values:
-            st.warning("Username already exists. Please choose another.")
-        else:
-            new_row = pd.DataFrame([{
-                "username": new_user,
-                "password": new_pass,
-                "score": 0,
-                "certified": 0,
-                "attempts": 0,
-                "access_code": access_code,
-                "full_name": full_name,
-                "nric": nric,
-                "email": email
-            }])
-            df_users = pd.concat([df_users, new_row], ignore_index=True)
-            save_users_sheet(df_users)
-            st.success("✅ Account created successfully! You can now log in.")
+        if st.button("Sign Up"):
+            # Load Google Sheets
+            df_users = load_users_sheet()
+            df_candidates = load_candidate_list()
+    
+            match = df_candidates[
+                (df_candidates["ACCESSCODE"] == access_code) &
+                (df_candidates["NRIC"].astype(str).str.strip() == nric.strip()) &
+                (df_candidates["EMAIL"].str.lower().str.strip() == email.lower().strip()) &
+                (df_candidates["STATUS"] == 1)
+            ]
+    
+            if match.empty:
+                st.error("Access Code is invalid or not activated, or NRIC/Email doesn't match.")
+            elif new_user in df_users["username"].values:
+                st.warning("Username already exists. Please choose another.")
+            else:
+                new_row = pd.DataFrame([{
+                    "username": new_user,
+                    "password": new_pass,
+                    "score": 0,
+                    "certified": 0,
+                    "attempts": 0,
+                    "access_code": access_code,
+                    "full_name": full_name,
+                    "nric": nric,
+                    "email": email
+                }])
+                df_users = pd.concat([df_users, new_row], ignore_index=True)
+                save_users_sheet(df_users)
+                st.success("✅ Account created successfully! You can now log in.")
 
 
     # Login
