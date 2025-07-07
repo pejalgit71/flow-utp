@@ -95,10 +95,14 @@ def calculate_score(answers, questions):
             correct += 1
     return int((correct / len(questions)) * 100)
 
+def save_questions_sheet(df):
+    gc = get_gsheet_client()
+    sheet = gc.open(SHEET_NAME).worksheet("questions")
+    sheet.clear()
+    sheet.update([df.columns.tolist()] + df.fillna("").values.tolist())
+
 def admin_question_gui():
     st.subheader("🛠️ Manage Quiz Questions")
-
-    # Display all questions
     df = load_questions_sheet()
 
     st.markdown("### ➕ Add New Question")
@@ -154,20 +158,17 @@ def main():
     st.set_page_config(page_title="UTP STEM Certification Quiz", layout="wide")
     st.title("Universiti Teknologi PETRONAS STEM Exploration Assessment")
 
-    # Initialize session state
     if "username" not in st.session_state:
         st.session_state["username"] = ""
 
-    # Sidebar branding
     st.sidebar.image("MyFLowlab.png")
     st.sidebar.image("UTP.png")
 
-    # Show Login/Sign Up only if NOT logged in
+    # === Login / Signup ===
     if not st.session_state["username"]:
         menu = ["Login", "Sign Up"]
         choice = st.sidebar.selectbox("Menu", menu)
 
-        # Sign Up
         if choice == "Sign Up":
             st.subheader("Create Account")
             full_name = st.text_input("Full Name (as in book)")
@@ -191,7 +192,9 @@ def main():
                 if match.empty:
                     st.error("Access Code is invalid or not activated, or NRIC/Email doesn't match.")
                 elif new_user in df_users["username"].values:
-                    st.warning("Username already exists. Please choose another.")
+                    st.warning("Username already exists.")
+                elif access_code in df_users["access_code"].values:
+                    st.warning("This Access Code has already been used.")
                 else:
                     new_row = pd.DataFrame([{
                         "username": new_user,
@@ -208,7 +211,6 @@ def main():
                     save_users_sheet(df_users)
                     st.success("✅ Account created successfully! You can now log in.")
 
-        # Login
         elif choice == "Login":
             st.subheader("Login")
             user = st.text_input("Username")
@@ -221,14 +223,15 @@ def main():
                 else:
                     st.error("Invalid credentials.")
 
-    # After login
+    # === After Login ===
     if st.session_state["username"]:
         st.sidebar.success(f"Logged in as: {st.session_state['username']}")
         if st.sidebar.button("Logout"):
-            st.session_state["username"] = ""
+            for key in ["username", "current_q", "answers"]:
+                if key in st.session_state:
+                    del st.session_state[key]
             st.rerun()
 
-        # Admin panel
         if st.session_state["username"] == "admin":
             st.subheader("Admin Panel")
             file = st.file_uploader("Upload new candidate list (.xlsx)", type="xlsx")
@@ -236,11 +239,22 @@ def main():
                 new_df = pd.read_excel(file, sheet_name="Certification candidate list")
                 update_candidate_list(new_df)
                 st.success("Candidate list updated.")
+            admin_question_gui()
 
-            admin_question_gui()  # Show admin controls
-
-        # Regular user quiz
         else:
+            df = load_users_sheet()
+            user_row = df[df["username"] == st.session_state["username"]].index[0]
+
+            if df.loc[user_row, "certified"] == 1:
+                st.success("🎉 You are already certified.")
+                cert_path = generate_certificate(st.session_state["username"], df.loc[user_row, "score"])
+                with open(cert_path, "rb") as f:
+                    st.download_button("🎓 Download Certificate", f.read(), file_name=f"{st.session_state['username']}_certificate.pdf")
+                return
+            elif df.loc[user_row, "attempts"] >= 3:
+                st.error("❌ You have used all 3 attempts.")
+                return
+
             questions = load_questions_sheet()
             if "current_q" not in st.session_state:
                 st.session_state.current_q = 0
@@ -274,26 +288,20 @@ def main():
 
             if current_q == total_q - 1:
                 if st.button("✅ Submit Quiz"):
-                    df = load_users_sheet()
-                    user_row = df[df["username"] == st.session_state["username"]].index[0]
-                    attempts = df.loc[user_row, "attempts"]
-                    if attempts >= 3:
-                        st.error("Used all 3 attempts.")
-                    else:
-                        score = calculate_score(st.session_state.answers, questions)
-                        df.loc[user_row, "score"] = score
-                        df.loc[user_row, "certified"] = int(score >= 70)
-                        if score < 70:
-                            df.loc[user_row, "attempts"] = attempts + 1
-                        save_users_sheet(df)
-                        st.success(f"Score: {score}%")
+                    score = calculate_score(st.session_state.answers, questions)
+                    df.loc[user_row, "score"] = score
+                    df.loc[user_row, "certified"] = int(score >= 70)
+                    if score < 70:
+                        df.loc[user_row, "attempts"] += 1
+                    save_users_sheet(df)
+                    st.success(f"Score: {score}%")
 
-                        if score >= 70:
-                            cert_path = generate_certificate(st.session_state["username"], score)
-                            with open(cert_path, "rb") as f:
-                                st.download_button("🎓 Download Certificate", f.read(), file_name=f"{st.session_state['username']}_certificate.pdf")
-                        else:
-                            st.error("Did not pass. Try again later.")
+                    if score >= 70:
+                        cert_path = generate_certificate(st.session_state["username"], score)
+                        with open(cert_path, "rb") as f:
+                            st.download_button("🎓 Download Certificate", f.read(), file_name=f"{st.session_state['username']}_certificate.pdf")
+                    else:
+                        st.error("You did not pass. Try again later.")
 
 if __name__ == "__main__":
     main()
